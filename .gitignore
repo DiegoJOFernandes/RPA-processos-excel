@@ -27,9 +27,9 @@ env/
 # ===============================
 # Logs / runtime
 # ===============================
-*.log
-logs/
-status.txt
+# *.log
+# logs/
+# status.txt
 
 # ===============================
 # Output gerado pelo RPA
@@ -41,8 +41,8 @@ output/
 # ===============================
 # Inputs locais (dados sensíveis)
 # ===============================
-input/
-templates/
+# input/
+# templates/
 
 # ===============================
 # IDE / Editor
