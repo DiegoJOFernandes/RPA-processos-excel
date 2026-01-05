@@ -34,9 +34,9 @@ env/
 # ===============================
 # Output gerado pelo RPA
 # ===============================
-output/
-*.xlsx
-*.pdf
+# output/
+# *.xlsx
+# *.pdf
 
 # ===============================
 # Inputs locais (dados sensíveis)
