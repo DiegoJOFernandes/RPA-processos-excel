@@ -1,111 +1,120 @@
-```markdown
-# 📄 Invoice Excel Automation (Python)
+```md
+# 🤖 RPA – Geração de Faturas de Cartão de Crédito (PF / PJ)
 
-Projeto em Python para **automatizar a geração de faturas em Excel**, a partir de uma planilha de dados de entrada.  
-O processo lê os dados, agrupa por cliente, preenche um template de fatura, salva o arquivo final em pasta específica e realiza a impressão automática (Windows).
+Este projeto é uma automação (**RPA**) desenvolvida em **Python** para gerar **faturas de cartão de crédito** a partir de uma planilha de transações, com suporte a:
+
+- Pessoa Física (**PF**)  
+- Pessoa Jurídica (**PJ**)  
+- Templates distintos de fatura  
+- Geração de **Excel + PDF**  
+- Organização automática de arquivos  
+- Validações completas antes da execução (preflight)
+
+O projeto foi pensado para uso **corporativo**, com foco em confiabilidade, rastreabilidade e fácil manutenção.
 
 ---
 
 ## 🎯 Objetivo
 
-Automatizar o processo manual de:
-- leitura de planilhas Excel,
-- agrupamento de dados por cliente,
-- preenchimento de um template de fatura,
-- geração de arquivos finais,
-- impressão das faturas,
-- organização dos arquivos gerados.
+Automatizar o processo de:
+
+1. Leitura de uma planilha de transações de cartão de crédito
+2. Agrupamento por cliente (CPF ou CNPJ)
+3. Identificação automática de PF ou PJ
+4. Cálculo do total mensal
+5. Preenchimento de templates de fatura em Excel
+6. Geração do PDF da fatura
+7. Organização dos arquivos por cliente
+8. Execução segura com validações prévias
 
 ---
 
-## ⚙️ Funcionalidades
-
-- Leitura de planilha Excel de entrada
-- Validação e tratamento de dados
-- Agrupamento por cliente (CPF/CNPJ ou outro identificador)
-- Preenchimento automático de template de fatura em Excel
-- Cálculo de totais
-- Geração de uma fatura por cliente
-- Impressão automática da fatura (Windows + Excel instalado)
-- Salvamento organizado em pastas por fatura
-
----
-
-## 🧱 Estrutura do Projeto
+## 🧱 Arquitetura do Projeto
 
 ```
 
 invoice_excel_automation/
 │
-├── input/
-│   └── dados.xlsx              # Planilha de entrada
-│
-├── templates/
-│   └── fatura.xlsx             # Template da fatura
-│
-├── output/
-│   └── FATURA_<ID>/            # Faturas geradas
-│       └── fatura_<ID>.xlsx
-│
 ├── src/
-│   ├── config.py               # Configurações do projeto
-│   ├── io_excel.py             # Leitura do Excel de entrada
-│   ├── transform.py            # Validação, limpeza e agrupamento
-│   ├── fill_template.py        # Preenchimento do template
-│   ├── print_invoice.py        # Impressão da fatura
-│   └── main.py                 # Orquestração do processo
+│   ├── main.py                 # Orquestra o fluxo principal do RPA
+│   ├── config.py               # Configurações centralizadas (via .env)
+│   ├── io_excel.py             # Leitura da planilha de entrada
+│   ├── transform.py            # Validações, agrupamentos e header da fatura
+│   ├── fill_template.py        # Preenchimento do template Excel (PF/PJ)
+│   ├── print_invoice.py        # Exportação para PDF e impressão (Windows)
+│   └── preflight.py            # Validações antes de iniciar o RPA
 │
-├── requirements.txt            # Dependências
+├── input/                      # Planilha de dados (não versionar)
+├── templates/                  # Templates de fatura PF e PJ
+├── output/                     # Faturas geradas automaticamente
+│
 ├── .env                        # Configurações de ambiente
+├── .gitignore
+├── requirements.txt
 └── README.md
 
 ````
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## ⚙️ Pré-requisitos
 
-- **Python 3.12+**
-- **pandas** – leitura e manipulação de dados
-- **openpyxl** – leitura e escrita em Excel
-- **python-dotenv** – variáveis de ambiente
-- **pywin32** – impressão automática (somente Windows)
+- **Python 3.10+**
+- **Windows** (para exportação PDF via Excel)
+- Microsoft **Excel instalado** (para PDF/print)
+- Git (opcional)
 
 ---
 
 ## 📦 Instalação
 
-### 1. Criar ambiente virtual
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+### 1️⃣ Clonar o repositório
+```bash
+git clone <url-do-repositorio>
+cd invoice_excel_automation
 ````
 
-### 2. Instalar dependências
+### 2️⃣ Criar ambiente virtual
+
+```bash
+python -m venv .venv
+```
+
+### 3️⃣ Ativar ambiente virtual
+
+**Windows (PowerShell):**
 
 ```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### 4️⃣ Instalar dependências
+
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## 🔧 Configuração
+## 🔐 Configuração (`.env`)
 
-Edite o arquivo `.env` conforme o layout das suas planilhas:
+Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
 ```env
 INPUT_FILE=./input/dados.xlsx
-TEMPLATE_FILE=./templates/fatura.xlsx
+TEMPLATE_PF=./templates/fatura_pf.xlsx
+TEMPLATE_PJ=./templates/fatura_pj.xlsx
 OUTPUT_DIR=./output
 
 SHEET_INPUT=Dados
-SHEET_TEMPLATE=Fatura PJ
+SHEET_TEMPLATE=Fatura
 
+CLIENT_TYPE_COLUMN=tipo_cliente
 GROUP_BY_COLUMN=documento_cliente
-ITEM_DESC_COLUMN=descricao
-ITEM_QTY_COLUMN=quantidade
-ITEM_UNIT_COLUMN=valor_unitario
-ITEM_TOTAL_COLUMN=valor_total
+
+MONTH_REF_COLUMN=mes_fatura
+CARD_NUMBER_COLUMN=numero_cartao
+MONTHLY_SUM_COLUMN=soma_total_mensal
 
 MAX_ITEMS=40
 
@@ -119,71 +128,132 @@ COL_ITEM_DESC=B
 COL_ITEM_QTY=F
 COL_ITEM_UNIT=G
 COL_ITEM_TOTAL=H
+
+CELL_MONTH_REF=D6
+CELL_CARD_NUMBER=D7
+CELL_MONTHLY_SUM=D8
 ```
 
 ---
 
-## ▶️ Execução
+## 📥 Planilha de Entrada (Input)
 
-Com o ambiente virtual ativado:
+A planilha deve conter **uma linha por transação** com as colunas abaixo:
 
-```powershell
-python src/main.py
+### 🔑 Colunas obrigatórias
+
+| Coluna            | Descrição                       |
+| ----------------- | ------------------------------- |
+| documento_cliente | CPF ou CNPJ                     |
+| tipo_cliente      | `PF` ou `PJ`                    |
+| nome_cliente      | Nome do cliente                 |
+| mes_fatura        | Mês de referência (ex: 08/2024) |
+| numero_cartao     | Número do cartão                |
+| estabelecimento   | Nome do estabelecimento         |
+| valor_compra      | Valor total da compra           |
+| qtd_parcelas      | Quantidade de parcelas          |
+| valor_parcela     | Valor da parcela mensal         |
+
+---
+
+## 🧾 Templates de Fatura
+
+* `templates/fatura_pf.xlsx`
+* `templates/fatura_pj.xlsx`
+
+### Requisitos:
+
+* Devem conter a aba **`Fatura`**
+* Podem conter **células mescladas**
+* Células devem respeitar as posições configuradas no `.env`
+
+O sistema trata automaticamente células mescladas.
+
+---
+
+## ✅ Preflight Checks (Validações Iniciais)
+
+Antes de qualquer processamento, o sistema valida:
+
+* Existência do arquivo de input
+* Existência dos templates PF e PJ
+* Aba correta no template
+* Colunas obrigatórias
+* Valores válidos (`PF` / `PJ`)
+* Documento preenchido
+* Valores numéricos coerentes
+* Quantidade total de faturas a gerar
+
+Se algo estiver errado, o processo **é interrompido imediatamente** com erro claro.
+
+---
+
+## ▶️ Execução do RPA
+
+Com tudo configurado, execute:
+
+```bash
+python -m src.main
 ```
 
 ---
 
-## 📄 Resultado Esperado
+## 📤 Estrutura de Saída
 
-Após a execução:
-
-* Será criada uma pasta para cada cliente em `output/`
-* Cada pasta conterá a fatura preenchida em Excel
-* A fatura será enviada para impressão automaticamente (se disponível)
-* Um arquivo `status.txt` indica sucesso ou falha de impressão
-
-Exemplo:
+O sistema gera a seguinte estrutura automaticamente:
 
 ```
 output/
-└── FATURA_12345678000199/
-    ├── fatura_12345678000199.xlsx
-    └── status.txt
+└── PF/
+    └── FATURA_12345678900/
+        ├── fatura_12345678900.xlsx
+        ├── fatura_12345678900.pdf
+        └── status.txt
+```
+
+Ou:
+
+```
+output/
+└── PJ/
+    └── FATURA_12345678000199/
 ```
 
 ---
 
-## 🖨️ Impressão Automática
+## 🖨️ PDF e Impressão
 
-* Disponível apenas no **Windows**
-* Requer **Microsoft Excel instalado**
-* Usa a impressora padrão do sistema
-
-Caso a impressão falhe, o arquivo da fatura permanece salvo para impressão manual.
+* A exportação para **PDF A4** é feita via Excel (Windows)
+* Impressão automática é opcional
+* Em outros sistemas operacionais, o PDF pode ser gerado futuramente via LibreOffice
 
 ---
 
-## ⚠️ Observações Importantes
+## 🛡️ Boas Práticas Aplicadas
 
-* Linhas inválidas são removidas automaticamente
-* Se um cliente não possuir linhas válidas, a fatura não é gerada
-* O projeto foi pensado para **uso operacional simples**, sem banco de dados ou APIs
+* Fail fast (erros antes do processamento)
+* Configuração centralizada
+* Templates desacoplados do código
+* Código defensivo (merged cells, arquivos ausentes)
+* Organização clara de saída
+* Estrutura pronta para escalar
 
 ---
 
-## 🚀 Próximas Evoluções (opcional)
+## 🚀 Evoluções Futuras (opcional)
 
-* Suporte a PF e PJ com templates diferentes
-* Exportação automática para PDF
-* Geração de executável (.exe)
+* Modo `--dry-run`
 * Logs estruturados
-* Integração com sistemas externos
-* Agendamento automático (Task Scheduler)
+* Executável (`pyinstaller`)
+* Validação CPF/CNPJ
+* Integração com sistemas web
+* Agendamento automático
+* Interface gráfica (RPA visual)
 
 ---
 
-## 👤 Autor / Responsável
+## 📄 Licença
 
-Projeto desenvolvido para automação de processos internos com Excel utilizando Python.
+Projeto interno / uso corporativo.
 
 ---
